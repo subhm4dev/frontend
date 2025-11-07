@@ -1,0 +1,12 @@
+{
+  "name": "@ecom/api-client",
+  "version": "1.0.0",
+  "main": "./src/index.js",
+  "scripts": {
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "axios": "1.13.2",
+    "@ecom/shared-schemas": "workspace:*"
+  }
+}

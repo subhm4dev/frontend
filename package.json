@@ -1,0 +1,36 @@
+{
+  "name": "ecommerce-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "dev:namaste-fab": "turbo run dev --filter=namaste-fab",
+    "dev:marketplace": "turbo run dev --filter=web/marketplace",
+    "dev:alcohol": "turbo run dev --filter=mobile/alcohol-delivery",
+    "dev:saree-mobile": "turbo run dev --filter=mobile/saree-shop-mobile",
+    "build:all": "turbo run build",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.0.3",
+    "turbo": "^1.10.0"
+  },
+  "packageManager": "pnpm@10.20.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "glob": "^10.3.10",
+      "rimraf": "^5.0.5",
+      "@humanwhocodes/config-array": "^0.15.0",
+      "@humanwhocodes/object-schema": "^2.0.3"
+    }
+  }
+}

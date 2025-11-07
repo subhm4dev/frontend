@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@ecom/api-client": ["./packages/api-client/src"],
+      "@ecom/shared-schemas": ["./packages/shared-schemas/src"],
+      "@ecom/ui-components": ["./packages/ui-components/src"],
+      "@ecom/mobile-components": ["./packages/mobile-components/src"],
+      "@ecom/utils": ["./packages/utils/src"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "build", ".next"]
+}

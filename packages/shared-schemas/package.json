@@ -1,0 +1,11 @@
+{
+  "name": "@ecom/shared-schemas",
+  "version": "1.0.0",
+  "main": "./src/index.js",
+  "scripts": {
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
+  }
+}
