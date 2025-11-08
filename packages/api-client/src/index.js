@@ -46,6 +46,8 @@ export class ApiClient {
         'Content-Type': 'application/json',
       },
       timeout: 30000, // 30 seconds
+      withCredentials: true, // Send cookies automatically with requests
+
     });
 
     // Request interceptor: Add auth token to headers
@@ -213,25 +215,26 @@ export class ApiClient {
   }
 
   /**
-   * Logout user
-   * @param {string} [refreshToken] - Optional refresh token (uses token provider if not provided)
-   * @returns {Promise<void>}
-   */
-  async logout(refreshToken) {
-    const token = refreshToken || this.getRefreshToken();
-
-    try {
-      if (token) {
-        // Validate request with Zod
-        const validatedData = LogoutRequestSchema.parse({ refreshToken: token });
-        await this.client.post('/api/v1/auth/logout', validatedData);
-      }
-    } catch (error) {
-      // Even if logout fails on server, continue (Zustand will clear tokens)
-      console.error('Logout error:', error);
-    }
-    // Note: Zustand store should clear tokens after calling this
+ * Logout user
+ * @param {string} [refreshToken] - Optional refresh token (if not provided, backend reads from cookies)
+ * @returns {Promise<void>}
+ */
+async logout(refreshToken) {
+  try {
+    // Always make the API call
+    // Cookies are sent automatically by browser:
+    // - accessToken cookie → Backend reads for authentication
+    // - refreshToken cookie → Backend reads for revoking
+    const requestBody = refreshToken 
+      ? LogoutRequestSchema.parse({ refreshToken })
+      : {}; // Empty body - backend reads refreshToken from cookies
+    
+    await this.client.post('/api/v1/auth/logout', requestBody);
+  } catch (error) {
+    // Even if logout fails on server, continue (Zustand will clear state)
+    console.error('Logout error:', error);
   }
+}
 
   /**
    * Logout from all devices

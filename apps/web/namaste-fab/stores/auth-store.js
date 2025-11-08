@@ -7,26 +7,52 @@ import apiClient, { authApi } from '@ecom/api-client';
 /**
  * Auth Store
  * 
- * Manages authentication state and integrates with API client.
- * Uses Zustand persist middleware to save tokens to localStorage.
+ * Manages authentication UI state.
+ * - User info stored in localStorage (for persistence across refreshes)
+ * - Tokens stored in cookies (set by backend, more secure)
  */
 export const useAuthStore = create(
   persist(
     (set, get) => ({
       // State
-      accessToken: null,
-      refreshToken: null,
       user: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
 
-      // Initialize: Set up token provider for API client
-      initialize: () => {
-        apiClient.setTokenProvider(() => ({
-          accessToken: get().accessToken,
-          refreshToken: get().refreshToken,
-        }));
+      // Check auth status by calling API route
+      // This reads cookies (which client components can't do directly)
+      checkAuthStatus: async () => {
+        set({ isLoading: true });
+        try {
+          const response = await fetch('/api/auth/status');
+          const data = await response.json();
+          
+          if (data.isAuthenticated) {
+            // User is authenticated (cookie exists)
+            // User info should already be in store from localStorage (if previously logged in)
+            set({
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            // User is not authenticated
+            set({
+              isAuthenticated: false,
+              user: null,
+              isLoading: false,
+              error: null,
+            });
+          }
+        } catch (error) {
+          console.error('Auth status check error:', error);
+          set({
+            isAuthenticated: false,
+            isLoading: false,
+            error: 'Failed to check auth status',
+          });
+        }
       },
 
       // Login
@@ -35,9 +61,9 @@ export const useAuthStore = create(
         try {
           const response = await authApi.login(data);
           
+          // Backend sets cookies automatically (tokens in cookies)
+          // Store user info in Zustand (will be persisted to localStorage)
           set({
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
             user: {
               id: response.id,
               roles: response.role,
@@ -64,10 +90,9 @@ export const useAuthStore = create(
         try {
           const response = await authApi.register(data);
           
-          // Note: Backend returns "token" not "accessToken" for register
+          // Backend sets cookies automatically (tokens in cookies)
+          // Store user info in Zustand (will be persisted to localStorage)
           set({
-            accessToken: response.token,
-            refreshToken: response.refreshToken,
             user: {
               id: response.id,
               roles: response.role,
@@ -92,17 +117,14 @@ export const useAuthStore = create(
       logout: async () => {
         set({ isLoading: true });
         try {
-          const refreshToken = get().refreshToken;
-          if (refreshToken) {
-            await authApi.logout(refreshToken);
-          }
+          // Call logout API (backend will clear cookies)
+          await authApi.logout();
         } catch (error) {
           console.error('Logout error:', error);
           // Continue with logout even if API call fails
         } finally {
+          // Clear UI state (cookies cleared by backend)
           set({
-            accessToken: null,
-            refreshToken: null,
             user: null,
             isAuthenticated: false,
             isLoading: false,
@@ -120,36 +142,11 @@ export const useAuthStore = create(
           console.error('Logout all error:', error);
         } finally {
           set({
-            accessToken: null,
-            refreshToken: null,
             user: null,
             isAuthenticated: false,
             isLoading: false,
             error: null,
           });
-        }
-      },
-
-      // Refresh token
-      refreshToken: async () => {
-        try {
-          const refreshToken = get().refreshToken;
-          if (!refreshToken) {
-            throw new Error('No refresh token available');
-          }
-
-          const response = await authApi.refreshToken(refreshToken);
-          
-          set({
-            accessToken: response.accessToken,
-            // Refresh token stays the same
-          });
-
-          return response;
-        } catch (error) {
-          // Refresh failed, logout user
-          get().logout();
-          throw error;
         }
       },
 
@@ -161,17 +158,11 @@ export const useAuthStore = create(
     {
       name: 'auth-storage', // localStorage key
       partialize: (state) => ({
-        // Only persist tokens and user, not loading/error states
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
+        // Only persist user info and auth status, NOT tokens
+        // Tokens are in cookies (set by backend)
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
     }
   )
 );
-
-// Initialize token provider when store is created
-if (typeof window !== 'undefined') {
-  useAuthStore.getState().initialize();
-}
