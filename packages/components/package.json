@@ -12,6 +12,10 @@
   "devDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
+  },
+  "dependencies": {
+    "motion": "^12.23.24",
+    "react-hook-form": "^7.53.0",
+    "@hookform/resolvers": "^3.9.0"
   }
 }
-

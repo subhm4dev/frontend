@@ -18,22 +18,30 @@ export const useAuthStore = create(
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      hasCheckedAuth: false, // Track if initial auth check has completed
       error: null,
 
       // Check auth status by calling API route
       // This reads cookies (which client components can't do directly)
       checkAuthStatus: async () => {
-        set({ isLoading: true });
+        set({ isLoading: true, hasCheckedAuth: false });
         try {
           const response = await fetch('/api/auth/status');
           const data = await response.json();
           
           if (data.isAuthenticated) {
             // User is authenticated (cookie exists)
-            // User info should already be in store from localStorage (if previously logged in)
+            // Update user info with roles from API response
             set({
               isAuthenticated: true,
+              user: {
+                ...get().user,
+                id: data.userId || get().user?.id,
+                roles: data.roles || [],
+                tenantId: data.tenantId || get().user?.tenantId,
+              },
               isLoading: false,
+              hasCheckedAuth: true,
               error: null,
             });
           } else {
@@ -42,17 +50,28 @@ export const useAuthStore = create(
               isAuthenticated: false,
               user: null,
               isLoading: false,
+              hasCheckedAuth: true,
               error: null,
             });
           }
         } catch (error) {
-          console.error('Auth status check error:', error);
+          
           set({
             isAuthenticated: false,
             isLoading: false,
+            hasCheckedAuth: true,
             error: 'Failed to check auth status',
           });
         }
+      },
+
+      // Check if user has ADMIN role
+      isAdmin: () => {
+        const user = get().user;
+        if (!user || !user.roles) return false;
+        return Array.isArray(user.roles) 
+          ? user.roles.includes('ADMIN')
+          : user.roles === 'ADMIN';
       },
 
       // Login
@@ -63,10 +82,17 @@ export const useAuthStore = create(
           
           // Backend sets cookies automatically (tokens in cookies)
           // Store user info in Zustand (will be persisted to localStorage)
+          // Backend returns role as array or single value
+          const roles = Array.isArray(response.role) 
+            ? response.role 
+            : response.role 
+              ? [response.role] 
+              : [];
+          
           set({
             user: {
               id: response.id,
-              roles: response.role,
+              roles: roles,
               tenantId: response.tenantId,
             },
             isAuthenticated: true,
@@ -92,10 +118,17 @@ export const useAuthStore = create(
           
           // Backend sets cookies automatically (tokens in cookies)
           // Store user info in Zustand (will be persisted to localStorage)
+          // Backend returns role as array or single value
+          const roles = Array.isArray(response.role) 
+            ? response.role 
+            : response.role 
+              ? [response.role] 
+              : [];
+          
           set({
             user: {
               id: response.id,
-              roles: response.role,
+              roles: roles,
               tenantId: response.tenantId,
             },
             isAuthenticated: true,
@@ -120,7 +153,7 @@ export const useAuthStore = create(
           // Call logout API (backend will clear cookies)
           await authApi.logout();
         } catch (error) {
-          console.error('Logout error:', error);
+          
           // Continue with logout even if API call fails
         } finally {
           // Clear UI state (cookies cleared by backend)
@@ -139,7 +172,7 @@ export const useAuthStore = create(
         try {
           await authApi.logoutAll();
         } catch (error) {
-          console.error('Logout all error:', error);
+          
         } finally {
           set({
             user: null,

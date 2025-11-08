@@ -36,7 +36,7 @@ export function RegisterModal() {
       closeModal();
     } catch (error) {
       // Error is handled by auth store
-      console.error('Registration error:', error);
+      
     }
   };
 

@@ -36,7 +36,7 @@ export function LoginModal() {
       closeModal();
     } catch (error) {
       // Error is handled by auth store
-      console.error('Login error:', error);
+      
     }
   };
 
@@ -155,7 +155,7 @@ export function LoginModal() {
         {/* Register link */}
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <button
               onClick={() => {
                 handleClose();

@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  // Transpile workspace packages that use ES modules
+  transpilePackages: ['@ecom/components'],
 };
 
 export default nextConfig;

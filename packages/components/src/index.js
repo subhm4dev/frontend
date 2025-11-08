@@ -1,7 +1,7 @@
 // Main export file for ui-components package
 
-// Export all atoms
-export * from './atoms';
+// Export all atoms (only if there are exports)
+// export * from './atoms';
 
 // Export all molecules
 export * from './molecules';

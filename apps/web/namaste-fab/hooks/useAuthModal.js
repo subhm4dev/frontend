@@ -5,30 +5,29 @@ import { create } from 'zustand';
 /**
  * Auth Modal Store
  * 
- * Manages which authentication modal is open (login or register).
+ * Manages unified authentication modal state (single modal with tab switching).
  */
 export const useAuthModalStore = create((set) => ({
-  isLoginOpen: false,
-  isRegisterOpen: false,
+  isOpen: false,
 
-  openLogin: () => set({ isLoginOpen: true, isRegisterOpen: false }),
-  openRegister: () => set({ isLoginOpen: false, isRegisterOpen: true }),
-  closeModal: () => set({ isLoginOpen: false, isRegisterOpen: false }),
+  open: () => set({ isOpen: true }),
+  close: () => set({ isOpen: false }),
 }));
 
 /**
  * Hook to use auth modal
  * 
- * Provides functions to open/close login and register modals.
+ * Provides functions to open/close the unified authentication modal.
+ * Modal defaults to Login tab, user can switch to Sign Up tab.
  */
 export function useAuthModal() {
-  const { isLoginOpen, isRegisterOpen, openLogin, openRegister, closeModal } = useAuthModalStore();
+  const { isOpen, open, close } = useAuthModalStore();
 
   return {
-    isLoginOpen,
-    isRegisterOpen,
-    openLogin,
-    openRegister,
-    closeModal,
+    isOpen,
+    openLogin: open, // Alias for backward compatibility
+    openRegister: open, // Alias for backward compatibility
+    openModal: open,
+    closeModal: close,
   };
 }

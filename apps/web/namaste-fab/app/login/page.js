@@ -40,7 +40,7 @@ export default function LoginPage() {
     } catch (error) {
       // Error is already stored in auth store
       // You can access it via useAuthStore().error
-      console.error('Login failed:', error);
+      
     }
   };
 

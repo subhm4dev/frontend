@@ -1,8 +1,19 @@
 @import "tailwindcss";
 
 :root {
+  /* Elegant Odia-inspired color palette - Muted and Sophisticated */
+  --odia-amber: #92400E;      /* Deep amber/burgundy - elegant red alternative */
+  --odia-amber-dark: #78350F; /* Darker shade */
+  --odia-amber-light: #FEF3C7; /* Light cream */
+  --odia-gold: #B45309;       /* Muted gold */
+  --odia-maroon: #7C2D12;     /* Deep maroon */
+  
+  /* Neutral colors */
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Subtle gradients */
+  --gradient-subtle: linear-gradient(to right, rgba(146, 64, 14, 0.1), rgba(180, 83, 9, 0.05));
 }
 
 @theme inline {
@@ -22,5 +33,47 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Elegant scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f9fafb;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Focus styles - Subtle */
+:focus-visible {
+  outline: 2px solid rgba(146, 64, 14, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
