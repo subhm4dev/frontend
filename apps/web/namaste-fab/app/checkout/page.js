@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
+import { MapPin, Plus, CheckCircle2 } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useAddresses, useCreateAddress, useUpdateAddress } from '@/hooks/useAddresses';
 import { useCheckoutInitiate, useCheckoutComplete } from '@/hooks/useCheckout';
@@ -11,6 +12,8 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useAuthModal } from '@/hooks/useAuthModal';
 import { formatPrice } from '@ecom/utils';
 import { initializeRazorpayCheckout } from '@/lib/razorpay';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { CheckoutSteps, AddressForm } from '@ecom/components';
@@ -69,8 +72,8 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-amber-900"></div>
-          <p className="mt-4 text-gray-500">Checking authentication...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-amber-700"></div>
+          <p className="mt-4 text-neutral-500">Checking authentication...</p>
         </div>
       </div>
     );
@@ -262,7 +265,7 @@ export default function CheckoutPage() {
             contact: selectedAddress?.phone || '',
           },
           theme: {
-            color: '#92400E', // Amber-900
+            color: '#B45309', // Amber-700
           },
         };
 
@@ -282,15 +285,18 @@ export default function CheckoutPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen"
-      style={{
-        background: 'linear-gradient(135deg, #fef9f3 0%, #ffffff 50%, #fef9f3 100%)',
-      }}
+      className="min-h-screen flex flex-col bg-neutral-50"
     >
       <Header />
 
-      <main className="container mx-auto px-4 py-12 lg:py-16 max-w-4xl">
-        <h1 className="text-3xl font-light text-gray-900 mb-8">Checkout</h1>
+      <main className="container mx-auto px-4 py-8 flex-1">
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-neutral-900 mb-8 text-3xl font-semibold"
+        >
+          Checkout
+        </motion.h1>
 
         {/* Checkout Steps */}
         <CheckoutSteps currentStep={currentStep} steps={['Address', 'Review', 'Confirmation']} />
@@ -303,9 +309,21 @@ export default function CheckoutPage() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200"
+              className="bg-white rounded-xl p-6 shadow-md"
             >
-              <h2 className="text-xl font-light text-gray-900 mb-6">Shipping Address</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-neutral-900 text-xl font-semibold">Delivery Address</h2>
+                {!showAddressForm && (
+                  <Button
+                    onClick={() => setShowAddressForm(true)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add New
+                  </Button>
+                )}
+              </div>
 
               {showAddressForm ? (
                 <AddressForm
@@ -320,8 +338,8 @@ export default function CheckoutPage() {
                   {/* Loading State */}
                   {addressesLoading && (
                     <div className="text-center py-8">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-amber-900"></div>
-                      <p className="mt-2 text-sm text-gray-500">Loading addresses...</p>
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-amber-700"></div>
+                      <p className="mt-2 text-sm text-neutral-500">Loading addresses...</p>
                     </div>
                   )}
 
@@ -347,82 +365,60 @@ export default function CheckoutPage() {
                         addresses.map((address) => (
                       <motion.div
                         key={address.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`w-full p-4 rounded-lg border-2 transition-colors ${
-                          selectedAddressId === address.id
-                            ? 'border-amber-900 bg-amber-50'
-                            : 'border-gray-200 hover:border-amber-300'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <motion.button
                             whileHover={{ scale: 1.01 }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => handleAddressSelect(address.id)}
-                            className="flex-1 text-left"
+                            className={`border-2 rounded-lg p-4 cursor-pointer transition-colors ${
+                              selectedAddressId === address.id ? 'border-amber-600 bg-amber-50' : 'border-neutral-200'
+                            }`}
                           >
-                            <div>
-                              <p className="font-medium text-gray-900">{address.fullName || 'N/A'}</p>
-                              <p className="text-sm text-gray-600 mt-1">
+                            <div className="flex items-start gap-3">
+                              <input
+                                type="radio"
+                                checked={selectedAddressId === address.id}
+                                onChange={() => handleAddressSelect(address.id)}
+                                className="mt-1"
+                              />
+                              <label htmlFor={address.id} className="flex-1 cursor-pointer">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <MapPin className="w-4 h-4 text-neutral-500" />
+                                  <span className="text-neutral-900 font-medium">{address.fullName || 'N/A'}</span>
+                                </div>
+                                <div className="text-sm text-neutral-600 ml-6">
                                 {address.street}
                                 {address.street2 && `, ${address.street2}`}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                {address.city}, {address.state} {address.postalCode}
-                              </p>
-                              {address.phone && (
-                                <p className="text-sm text-gray-600">{address.phone}</p>
-                              )}
+                                  <br />
+                                  {address.city}, {address.state} - {address.postalCode}
+                                  <br />
+                                  Phone: {address.phone}
                             </div>
-                          </motion.button>
-                          <div className="flex items-center gap-2 ml-4">
-                            {selectedAddressId === address.id && (
-                              <svg className="w-6 h-6 text-amber-900 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
+                              </label>
+                              <Button
+                                variant="outline"
+                                size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleAddressEdit(address.id);
                               }}
-                              className="px-3 py-1.5 text-sm text-amber-900 border border-amber-900 rounded-md hover:bg-amber-50 transition-colors"
                             >
                               Edit
-                            </motion.button>
-                          </div>
+                              </Button>
                         </div>
                       </motion.div>
                         ))
                       ) : (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 text-neutral-500">
                           <p className="text-sm">No addresses found. Add your first address below.</p>
                         </div>
                       )}
                     </div>
                   )}
 
-                  <button
-                    onClick={() => setShowAddressForm(true)}
-                    className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-amber-900 hover:text-amber-900 transition-colors"
-                  >
-                    + Add New Address
-                  </button>
-
-                  <div className="flex justify-end mt-6">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handleAddressStepNext}
+                  <Button
+                    onClick={handleAddressStepNext}
                       disabled={!selectedAddressId || initiateCheckoutMutation.isPending}
-                      className="px-6 py-3 bg-amber-900 text-white rounded-lg hover:bg-amber-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    className="w-full mt-6 bg-amber-700 hover:bg-amber-800"
                     >
-                      {initiateCheckoutMutation.isPending ? 'Loading...' : 'Review Order'}
-                    </motion.button>
-                  </div>
+                    Continue to Payment
+                  </Button>
                 </>
               )}
             </motion.div>
@@ -435,67 +431,60 @@ export default function CheckoutPage() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200"
+              className="bg-white rounded-xl p-6 shadow-md"
             >
-              <h2 className="text-xl font-light text-gray-900 mb-6">Review Your Order</h2>
+              <h2 className="text-neutral-900 mb-6 text-xl font-semibold">Review Your Order</h2>
 
-              {/* Order Items */}
-              <div className="space-y-4 mb-6">
+              {/* Order Items Summary */}
+              <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
                 {orderSummary.items?.map((item) => (
-                  <div key={item.productId} className="flex justify-between items-center py-3 border-b border-gray-200">
-                    <div>
-                      <p className="font-medium text-gray-900">{item.productName}</p>
-                      <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                  <div key={item.productId} className="flex gap-3">
+                    <div className="w-16 h-20 rounded bg-neutral-100 overflow-hidden flex-shrink-0">
+                      {/* Product image would go here if available */}
                     </div>
-                    <p className="font-semibold text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-neutral-900 line-clamp-1">{item.productName}</div>
+                      <div className="text-xs text-neutral-500">Qty: {item.quantity}</div>
+                      <div className="text-sm text-neutral-700 font-medium">
                       {formatPrice(item.totalPrice, orderSummary.currency)}
-                    </p>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
 
-              {/* Order Summary */}
-              <div className="space-y-2 mb-6 p-4 bg-gray-50 rounded-lg">
-                <div className="flex justify-between text-sm text-gray-600">
+              <Separator className="my-4" />
+
+              {/* Order Summary Totals */}
+              <div className="space-y-2 text-sm mb-6">
+                <div className="flex justify-between text-neutral-600">
                   <span>Subtotal</span>
                   <span>{formatPrice(orderSummary.subtotal, orderSummary.currency)}</span>
                 </div>
                 {orderSummary.discountAmount > 0 && (
-                  <div className="flex justify-between text-sm text-green-600">
+                  <div className="flex justify-between text-green-600">
                     <span>Discount</span>
                     <span>-{formatPrice(orderSummary.discountAmount, orderSummary.currency)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm text-gray-600">
+                {orderSummary.taxAmount > 0 && (
+                  <div className="flex justify-between text-neutral-600">
                   <span>Tax</span>
                   <span>{formatPrice(orderSummary.taxAmount, orderSummary.currency)}</span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-600">
+                )}
+                <div className="flex justify-between text-neutral-600">
                   <span>Shipping</span>
                   <span>{formatPrice(orderSummary.shippingCost, orderSummary.currency)}</span>
                 </div>
-                <div className="border-t border-gray-300 pt-2 mt-2">
-                  <div className="flex justify-between text-lg font-semibold text-gray-900">
-                    <span>Total</span>
-                    <span>{formatPrice(orderSummary.total, orderSummary.currency)}</span>
-                  </div>
-                </div>
               </div>
 
-              {/* Shipping Address */}
-              {selectedAddress && (
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Shipping To:</h3>
-                  <p className="text-sm text-gray-600">{selectedAddress.fullName}</p>
-                  <p className="text-sm text-gray-600">
-                    {selectedAddress.street}
-                    {selectedAddress.street2 && `, ${selectedAddress.street2}`}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {selectedAddress.city}, {selectedAddress.state} {selectedAddress.postalCode}
-                  </p>
-                </div>
-              )}
+              <Separator className="my-4" />
+
+              <div className="flex justify-between text-neutral-900 mb-6 text-lg font-semibold">
+                    <span>Total</span>
+                    <span>{formatPrice(orderSummary.total, orderSummary.currency)}</span>
+              </div>
 
               {/* Payment Error */}
               {paymentError && (
@@ -521,16 +510,15 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              <div className="flex justify-between mt-6">
-                <button
+              <div className="flex gap-2">
+                <Button
                   onClick={() => setCurrentStep(1)}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  variant="outline"
+                  className="flex-1"
                 >
                   Back
-                </button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                </Button>
+                <Button
                   onClick={handlePlaceOrder}
                   disabled={
                     completeCheckoutMutation.isPending || 
@@ -541,14 +529,14 @@ export default function CheckoutPage() {
                     !cart.items ||
                     cart.items.length === 0
                   }
-                  className="px-6 py-3 bg-amber-900 text-white rounded-lg hover:bg-amber-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  className="flex-1 bg-amber-700 hover:bg-amber-800"
                 >
                   {completeCheckoutMutation.isPending || processPaymentMutation.isPending || createOrderMutation.isPending
                     ? 'Processing...'
                     : !cart || !cart.items || cart.items.length === 0
                     ? 'Cart is Empty'
-                    : 'Place Order & Pay'}
-                </motion.button>
+                    : 'Place Order'}
+                </Button>
               </div>
             </motion.div>
           )}
@@ -559,41 +547,49 @@ export default function CheckoutPage() {
               key="confirmation"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 text-center"
+              className="max-w-lg mx-auto text-center"
             >
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: 'spring', delay: 0.2 }}
-                className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
+                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
               >
-                <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+                <CheckCircle2 className="w-12 h-12 text-green-600" />
               </motion.div>
-
-              <h2 className="text-2xl font-light text-gray-900 mb-2">Order Placed Successfully!</h2>
-              <p className="text-gray-600 mb-6">
-                Your order number is <span className="font-semibold">{orderConfirmation.orderNumber}</span>
-              </p>
-              <p className="text-sm text-gray-500 mb-8">
-                You will receive an email confirmation shortly.
-              </p>
-
-              <div className="flex gap-4 justify-center">
-                <button
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-neutral-900 mb-4 text-3xl font-semibold"
+              >
+                Order Placed Successfully!
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-neutral-600 mb-8"
+              >
+                Thank you for your purchase. Your order has been confirmed and will be delivered soon.
+                {orderConfirmation?.orderNumber && (
+                  <span className="block mt-2">
+                    Order Number: <span className="font-semibold">{orderConfirmation.orderNumber}</span>
+                  </span>
+                )}
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <Button
                   onClick={() => router.push('/orders')}
-                  className="px-6 py-3 bg-amber-900 text-white rounded-lg hover:bg-amber-800 transition-colors font-medium"
+                  className="bg-amber-700 hover:bg-amber-800"
                 >
                   View Orders
-                </button>
-                <button
-                  onClick={() => router.push('/')}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Continue Shopping
-                </button>
-              </div>
+                </Button>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>

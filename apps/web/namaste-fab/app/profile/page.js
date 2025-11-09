@@ -3,12 +3,18 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
+import { User, MapPin, Trash2, Edit2, Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CreateProfileRequestSchema } from '@ecom/shared-schemas';
 import { useProfile, useCreateOrUpdateProfile } from '@/hooks/useProfile';
 import { useAddresses, useCreateAddress, useUpdateAddress, useDeleteAddress } from '@/hooks/useAddresses';
 import { useAuthStore } from '@/stores/auth-store';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AddressForm } from '@ecom/components';
@@ -111,8 +117,8 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-amber-900"></div>
-          <p className="mt-4 text-gray-500">Loading profile...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-amber-700"></div>
+          <p className="mt-4 text-neutral-500">Loading profile...</p>
         </div>
       </div>
     );
@@ -123,97 +129,110 @@ export default function ProfilePage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen"
-      style={{
-        background: 'linear-gradient(135deg, #fef9f3 0%, #ffffff 50%, #fef9f3 100%)',
-      }}
+      className="min-h-screen flex flex-col bg-neutral-50"
     >
       <Header />
 
-      <main className="container mx-auto px-4 py-12 lg:py-16 max-w-4xl">
-        <h1 className="text-3xl font-light text-gray-900 mb-8">My Profile</h1>
+      <main className="container mx-auto px-4 py-8 flex-1">
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-neutral-900 mb-8 text-3xl font-semibold"
+        >
+          My Profile
+        </motion.h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Profile Form */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <h2 className="text-xl font-light text-gray-900 mb-6">Personal Information</h2>
+          {/* Profile Information */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    Profile Information
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
             <form onSubmit={handleSubmit(handleProfileSubmit)} className="space-y-4">
-              {/* Full Name */}
               <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <input
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input
                   {...register('fullName')}
+                      id="fullName"
                   type="text"
-                  id="fullName"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-900/20 focus:border-amber-900 transition-all"
                 />
                 {errors.fullName && (
                   <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
                 )}
               </div>
-
-              {/* Phone */}
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number
-                </label>
-                <input
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
                   {...register('phone')}
+                      id="phone"
                   type="tel"
-                  id="phone"
                   placeholder="+919876543210"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-900/20 focus:border-amber-900 transition-all"
                 />
                 {errors.phone && (
                   <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
                 )}
               </div>
-
-              {/* Avatar URL */}
+                  {profile && (
+                    <>
+                      <Separator />
               <div>
-                <label htmlFor="avatarUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                  Avatar URL
-                </label>
-                <input
-                  {...register('avatarUrl')}
-                  type="url"
-                  id="avatarUrl"
-                  placeholder="https://example.com/avatar.jpg"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-900/20 focus:border-amber-900 transition-all"
-                />
-                {errors.avatarUrl && (
-                  <p className="mt-1 text-sm text-red-600">{errors.avatarUrl.message}</p>
-                )}
-              </div>
-
-              <motion.button
+                        <div className="text-sm text-neutral-500">Email</div>
+                        <div className="text-neutral-900">{user?.email || 'N/A'}</div>
+                      </div>
+                    </>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
                 type="submit"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
                 disabled={createOrUpdateProfileMutation.isPending}
-                className="w-full bg-amber-900 text-white font-medium py-2.5 px-4 rounded-lg hover:bg-amber-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-amber-700 hover:bg-amber-800"
               >
-                {createOrUpdateProfileMutation.isPending ? 'Saving...' : 'Save Profile'}
-              </motion.button>
+                      Save Changes
+                    </Button>
+                  </div>
             </form>
-          </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          {/* Addresses */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-light text-gray-900">Addresses</h2>
-              <button
+          {/* Saved Addresses */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    Saved Addresses
+                  </CardTitle>
+                  {!showAddressForm && (
+                    <Button
                 onClick={() => {
                   setEditingAddress(null);
                   setShowAddressForm(true);
                 }}
-                className="text-sm text-amber-900 hover:text-amber-800 font-medium transition-colors"
-              >
-                + Add Address
-              </button>
+                      variant="ghost"
+                      size="sm"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add New
+                    </Button>
+                  )}
             </div>
+              </CardHeader>
+              <CardContent>
 
             {showAddressForm ? (
               <AddressForm
@@ -226,58 +245,71 @@ export default function ProfilePage() {
                 isLoading={createAddressMutation.isPending || updateAddressMutation.isPending}
               />
             ) : (
-              <div className="space-y-3">
+              <>
                 {addressesLoading ? (
-                  <p className="text-gray-500 text-sm">Loading addresses...</p>
+                  <p className="text-neutral-500 text-sm text-center py-8">Loading addresses...</p>
                 ) : addresses && addresses.length > 0 ? (
-                  addresses.map((address) => (
+                  <div className="space-y-3">
+                    {addresses.map((address, index) => (
                     <motion.div
                       key={address.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-4 border border-gray-200 rounded-lg"
+                        transition={{ delay: index * 0.1 }}
+                        className="border border-neutral-200 rounded-lg p-4"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">{address.fullName || 'N/A'}</p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {address.street}
-                            {address.street2 && `, ${address.street2}`}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {address.city}, {address.state} {address.postalCode}
-                          </p>
-                          <p className="text-sm text-gray-600">{address.phone}</p>
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-neutral-500" />
+                            <span className="text-neutral-900 font-medium">{address.fullName || 'N/A'}</span>
                           {address.isDefault && (
-                            <span className="inline-block mt-2 px-2 py-0.5 text-xs bg-amber-100 text-amber-900 rounded">
+                              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
                               Default
                             </span>
                           )}
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleAddressEdit(address)}
-                            className="text-sm text-amber-900 hover:text-amber-800 transition-colors"
-                          >
-                            Edit
-                          </button>
                           <button
                             onClick={() => handleAddressDelete(address.id)}
                             disabled={deleteAddressMutation.isPending}
-                            className="text-sm text-red-600 hover:text-red-700 transition-colors disabled:opacity-50"
+                            className="text-red-600 hover:text-red-700"
                           >
-                            Delete
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
+                        <div className="text-sm text-neutral-600 ml-6">
+                          {address.street}
+                          {address.street2 && `, ${address.street2}`}
+                          <br />
+                          {address.city}, {address.state} - {address.postalCode}
+                          <br />
+                          Phone: {address.phone}
                       </div>
+                        {!address.isDefault && (
+                          <Button
+                            onClick={() => {
+                              // Set as default would need API call
+                              handleAddressEdit(address);
+                            }}
+                            variant="ghost"
+                            size="sm"
+                            className="mt-2 ml-6 text-xs h-7"
+                          >
+                            Set as Default
+                          </Button>
+                        )}
                     </motion.div>
-                  ))
+                    ))}
+                  </div>
                 ) : (
-                  <p className="text-gray-500 text-sm">No addresses saved</p>
+                  <div className="text-center py-8 text-neutral-500">
+                    No saved addresses yet
+                  </div>
                 )}
-              </div>
+              </>
             )}
-          </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </main>
 

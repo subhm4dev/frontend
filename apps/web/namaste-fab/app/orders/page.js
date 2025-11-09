@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
+import { Package } from 'lucide-react';
 import { useOrders } from '@/hooks/useOrders';
 import { formatPrice, formatDate } from '@ecom/utils';
+import { Button } from '@/components/ui/button';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { OrderCard } from '@ecom/components';
@@ -35,8 +37,8 @@ export default function OrdersPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-amber-900"></div>
-          <p className="mt-4 text-gray-500">Loading orders...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-amber-700"></div>
+          <p className="mt-4 text-neutral-500">Loading orders...</p>
         </div>
       </div>
     );
@@ -49,7 +51,7 @@ export default function OrdersPage() {
           <p className="text-red-600 mb-4">Failed to load orders</p>
           <button
             onClick={() => window.location.reload()}
-            className="text-amber-900 hover:text-amber-800 transition-colors"
+            className="text-amber-700 hover:text-amber-800 transition-colors"
           >
             Try again
           </button>
@@ -63,15 +65,18 @@ export default function OrdersPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen"
-      style={{
-        background: 'linear-gradient(135deg, #fef9f3 0%, #ffffff 50%, #fef9f3 100%)',
-      }}
+      className="min-h-screen flex flex-col bg-neutral-50"
     >
       <Header />
 
-      <main className="container mx-auto px-4 py-12 lg:py-16">
-        <h1 className="text-3xl font-light text-gray-900 mb-8">My Orders</h1>
+      <main className="container mx-auto px-4 py-8 flex-1">
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-neutral-900 mb-8 text-3xl font-semibold"
+        >
+          My Orders ({orders.length})
+        </motion.h1>
 
         {/* Status Filter */}
         <div className="mb-6">
@@ -81,7 +86,7 @@ export default function OrdersPage() {
               setStatusFilter(e.target.value);
               setCurrentPage(0);
             }}
-            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-900/20 focus:border-amber-900"
+            className="px-4 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-700/20 focus:border-amber-700"
           >
             <option value="">All Orders</option>
             <option value="PENDING">Pending</option>
@@ -94,15 +99,22 @@ export default function OrdersPage() {
 
         {/* Orders List */}
         {orders.length === 0 ? (
-          <div className="text-center py-24">
-            <p className="text-gray-400 mb-4">No orders found</p>
-            <button
-              onClick={() => router.push('/')}
-              className="text-amber-900 hover:text-amber-800 transition-colors"
-            >
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-md mx-auto text-center py-24"
+          >
+            <div className="w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Package className="w-12 h-12 text-neutral-400" />
+            </div>
+            <h2 className="text-neutral-900 mb-4 text-2xl font-semibold">No orders yet</h2>
+            <p className="text-neutral-600 mb-6">
+              When you place an order, it will appear here.
+            </p>
+            <Button onClick={() => router.push('/')} className="bg-amber-700 hover:bg-amber-800">
               Start Shopping
-            </button>
-          </div>
+            </Button>
+          </motion.div>
         ) : (
           <div className="space-y-4">
             {orders.map((order, index) => (
@@ -121,7 +133,7 @@ export default function OrdersPage() {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
               disabled={currentPage === 0}
-              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-2 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               ←
             </button>
@@ -139,15 +151,15 @@ export default function OrdersPage() {
                       onClick={() => setCurrentPage(page)}
                       className={`px-3 py-2 text-sm transition-colors ${
                         currentPage === page
-                          ? 'text-amber-900 font-medium'
-                          : 'text-gray-600 hover:text-gray-900'
+                          ? 'text-amber-700 font-medium'
+                          : 'text-neutral-600 hover:text-neutral-900'
                       }`}
                     >
                       {displayPage}
                     </button>
                   );
                 } else if (page === currentPage - 2 || page === currentPage + 2) {
-                  return <span key={page} className="px-2 text-gray-400">...</span>;
+                  return <span key={page} className="px-2 text-neutral-400">...</span>;
                 }
                 return null;
               })}
@@ -155,7 +167,7 @@ export default function OrdersPage() {
             <button
               onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
               disabled={currentPage === totalPages - 1}
-              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-2 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               →
             </button>

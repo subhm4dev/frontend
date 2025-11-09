@@ -1,134 +1,192 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
+import { ArrowRight, Sparkles, ShoppingBag } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
 /**
- * Hero Section Component
+ * Hero Section Component - Enterprise Design
  * 
- * Elegant hero banner with subtle Odia cultural elements.
- * Professional and sophisticated design appealing to all ages.
- * Features smooth animations on page load.
+ * Matches Enterprise HomePage hero section design
  */
 
-export function Hero() {
+export function Hero({ featuredProducts = [] }) {
+  const router = useRouter();
+  const [showFloatingButton, setShowFloatingButton] = useState(false);
+  const heroRef = useRef(null);
+
+  // Track hero section visibility for floating button
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowFloatingButton(!entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    if (heroRef.current) {
+      observer.observe(heroRef.current);
+    }
+
+    return () => {
+      if (heroRef.current) {
+        observer.unobserve(heroRef.current);
+      }
+    };
+  }, []);
+
+  const handleExploreCollection = () => {
+    router.push('/catalog');
+  };
+
   return (
-    <motion.section
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      className="relative overflow-hidden bg-gradient-to-b from-amber-50 via-orange-50/30 to-white py-20 lg:py-28"
-    >
-      {/* Subtle Pattern Overlay (inspired by Sambalpuri ikat - very subtle) */}
-      <div className="absolute inset-0 opacity-[0.03]">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 20px,
-            rgba(139, 69, 19, 0.1) 20px,
-            rgba(139, 69, 19, 0.1) 21px
-          )`,
-        }}></div>
+    <div>
+      {/* Hero Section */}
+      <section ref={heroRef} className="relative h-[600px] bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 overflow-hidden">
+        {/* Animated Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 left-20 w-64 h-64 bg-amber-600 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-600 rounded-full blur-3xl animate-pulse delay-700" />
       </div>
 
-      {/* Elegant Top Border */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-300 to-transparent"></div>
-
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Tagline - Subtle with animation */}
+        <div className="container mx-auto px-4 h-full flex items-center relative z-10">
+          <div className="max-w-2xl">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="mb-6"
+              transition={{ duration: 0.6 }}
+              className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full mb-6"
           >
-            <p className="text-amber-900/60 text-sm lg:text-base font-medium tracking-wide">
-              Authentic Handcrafted Sarees
-            </p>
+              <Sparkles className="w-4 h-4 text-amber-600" />
+              <span className="text-sm text-neutral-700">Celebrating India's Textile Heritage</span>
           </motion.div>
 
-          {/* Main Heading - Elegant Typography with animation */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-4xl lg:text-6xl font-light text-gray-900 mb-6 leading-tight tracking-tight"
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-4xl lg:text-5xl font-semibold text-neutral-900 mb-6"
           >
-            Beautiful Odia Sarees
+              Discover Authentic
             <br />
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-              className="font-normal text-amber-900"
-            >
-              Handcrafted with Love
-            </motion.span>
+              <span className="bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">
+                Odisha Handloom Sarees
+              </span>
           </motion.h1>
 
-          {/* Subheading with animation */}
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            className="text-lg lg:text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed"
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-neutral-600 mb-8 leading-relaxed text-lg"
           >
-            Discover the timeless elegance of Sambalpuri Ikat, Bomkai, and traditional Odia textiles
+              Immerse yourself in the timeless beauty of handwoven masterpieces. Each saree tells a story of tradition, craftsmanship, and cultural pride.
           </motion.p>
 
-          {/* CTA Buttons - Elegant and Professional with animations */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex gap-4"
           >
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-3.5 bg-amber-900 text-white font-medium rounded-md shadow-sm hover:bg-amber-800 transition-colors duration-200 text-base"
-            >
-              Shop Now
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-3.5 bg-white border border-gray-300 text-gray-700 font-medium rounded-md hover:border-amber-900 hover:text-amber-900 transition-colors duration-200 text-base"
+              <Button
+                size="lg"
+                className="bg-amber-700 hover:bg-amber-800 group"
+                onClick={handleExploreCollection}
             >
               Explore Collection
-            </motion.button>
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <Button size="lg" variant="outline" className="border-neutral-300 hover:border-amber-600 hover:text-amber-700">
+                Learn Our Story
+              </Button>
           </motion.div>
+          </div>
 
-          {/* Subtle Decorative Elements with animation */}
+          {/* Hero Image */}
+          {featuredProducts && featuredProducts.length >= 2 && (
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px]"
+            >
+              <div className="relative w-full h-full">
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
-            transition={{ delay: 0.7, duration: 0.5 }}
-            className="mt-16 flex justify-center gap-6"
+                  animate={{
+                    rotate: [0, 5, 0],
+                  }}
+                  transition={{
+                    duration: 6,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                  className="absolute top-0 right-0 w-80 h-96 rounded-2xl overflow-hidden shadow-2xl"
           >
-            {[1, 2, 3].map((i) => (
+                  <img
+                    src={featuredProducts[0]?.image || featuredProducts[0]?.images?.[0] || '/namastefab.png'}
+                    alt="Featured Saree"
+                    className="w-full h-full object-cover"
+                  />
+                </motion.div>
               <motion.div
-                key={i}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.7 + i * 0.1, type: 'spring', stiffness: 200 }}
-                className="w-2 h-2 rounded-full bg-amber-900/30"
+                  animate={{
+                    rotate: [0, -5, 0],
+                  }}
+                  transition={{
+                    duration: 6,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                    delay: 0.5,
+                  }}
+                  className="absolute bottom-0 right-20 w-64 h-80 rounded-2xl overflow-hidden shadow-2xl"
+                >
+                  <img
+                    src={featuredProducts[1]?.image || featuredProducts[1]?.images?.[0] || '/namastefab.png'}
+                    alt="Featured Saree"
+                    className="w-full h-full object-cover"
               />
-            ))}
+                </motion.div>
+              </div>
           </motion.div>
+          )}
         </div>
-      </div>
+      </section>
 
-      {/* Elegant Bottom Border */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-300 to-transparent"></div>
-
-      {/* Subtle Wave Decoration */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0 60L60 55C120 50 240 40 360 35C480 30 600 30 720 32.5C840 35 960 40 1080 42.5C1200 45 1320 45 1380 45L1440 45V60H1380C1320 60 1200 60 1080 60C960 60 840 60 720 60C600 60 480 60 360 60C240 60 120 60 60 60H0Z" fill="white" opacity="0.8"/>
-        </svg>
+      {/* Floating Explore Collection Button */}
+      <motion.div
+        initial={{ opacity: 0, y: 100 }}
+        animate={{ 
+          opacity: showFloatingButton ? 1 : 0,
+          y: showFloatingButton ? 0 : 100,
+        }}
+        transition={{ duration: 0.3 }}
+        className="fixed bottom-8 right-8 z-50"
+        style={{ pointerEvents: showFloatingButton ? 'auto' : 'none' }}
+      >
+        <motion.div
+          animate={{
+            y: [0, -10, 0],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        >
+          <Button
+            size="lg"
+            className="bg-amber-700 hover:bg-amber-800 shadow-2xl group"
+            onClick={handleExploreCollection}
+          >
+            <ShoppingBag className="w-5 h-5 mr-2" />
+            Explore Collection
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </motion.div>
+      </motion.div>
       </div>
-    </motion.section>
   );
 }

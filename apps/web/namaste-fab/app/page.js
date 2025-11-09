@@ -1,143 +1,63 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useMemo } from 'react';
+import { motion } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useAuthModal } from '@/hooks/useAuthModal';
-import { useProducts, useCategories } from '@/hooks/useProducts';
-import { useAddToCart, useCart } from '@/hooks/useCart';
-import { ProductCard } from '@ecom/components';
+import { useProducts } from '@/hooks/useProducts';
+import { useAddToCart } from '@/hooks/useCart';
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
-import { FilterSidebar } from '@/components/FilterSidebar';
 import { Footer } from '@/components/Footer';
-import { QuickLookModal } from '@/components/QuickLookModal';
+import { EnterpriseProductCard } from '@/components/EnterpriseProductCard';
 
 /**
  * Home Page
  * 
  * Main homepage featuring:
- * - Hero section with Odia cultural elements
- * - Product catalog with pagination
- * - Collapsible filter sidebar
- * - Responsive design
+ * - Hero section
+ * - Featured Collection
+ * - Newest Arrivals
+ * - Bestsellers
+ * - Trust Section
  */
 
 export default function Home() {
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { openLogin } = useAuthModal();
-  const { data: cart } = useCart({ enabled: isAuthenticated });
   
-  // Filter state
-  const [filters, setFilters] = useState({
-    price: null,
-    categories: [],
-    colors: [],
-    fabrics: [],
-  });
-
-  // Search query state
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Pagination state (backend uses 0-indexed pages)
-  const [currentPage, setCurrentPage] = useState(0);
-  const [productsPerPage] = useState(12);
-
-  // Filter sidebar state
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  // Quick Look Modal state
-  const [quickLookProduct, setQuickLookProduct] = useState(null);
-
-  // Build API params from filters and pagination
-  const apiParams = useMemo(() => {
-    const params = {
-      page: currentPage,
-      size: productsPerPage,
-    };
-
-    // Add search query
-    if (searchQuery) {
-      params.query = searchQuery;
-    }
-
-    // Add category filter (if any selected)
-    if (filters.categories && filters.categories.length > 0) {
-      params.categoryId = filters.categories[0]; // Backend supports single category for now
-    }
-
-    // Add price filter
-    if (filters.price) {
-      const [min, max] = filters.price.split('-').map(Number);
-      params.minPrice = min;
-      if (max !== Infinity) {
-        params.maxPrice = max;
-      }
-    }
-
-    return params;
-  }, [currentPage, productsPerPage, searchQuery, filters]);
-
-  // Fetch products from API
-  const { data: productsData, isLoading: productsLoading, error: productsError } = useProducts(apiParams);
-  
-  // Fetch categories for filter sidebar
-  const { data: categoriesData } = useCategories();
+  // Fetch featured products for hero and sections (first page, 6 products)
+  const { data: featuredProductsData } = useProducts({ page: 0, size: 6 });
 
   // Add to cart mutation
   const addToCartMutation = useAddToCart();
 
-  // Extract products from API response
-  const products = useMemo(() => {
-    if (!productsData?.content) return [];
-    return productsData.content.map((product) => ({
+  // Extract featured products for hero and sections
+  const featuredProducts = useMemo(() => {
+    if (!featuredProductsData?.content) return [];
+    return featuredProductsData.content.slice(0, 6).map((product) => ({
       id: product.id,
       name: product.name,
       price: product.price,
-      originalPrice: null, // Backend doesn't return originalPrice, calculate from discount if needed
+      originalPrice: null,
       image: product.images?.[0] || null,
-      discount: 0, // Calculate if needed
-      inStock: product.status === 'ACTIVE',
-      isNew: false, // Backend doesn't provide this, could be based on createdAt
+      images: product.images || [],
+      category: product.categoryName || product.category?.name,
+      fabric: product.fabric,
+      region: product.region,
     }));
-  }, [productsData]);
+  }, [featuredProductsData]);
 
-  // Pagination info from API
-  const totalPages = productsData?.totalPages || 0;
-  const totalProducts = productsData?.totalElements || 0;
+  // Featured products (first 6)
+  const featuredCollection = featuredProducts.slice(0, 6);
 
-  // Auth status is checked by AuthInitializer in layout.js
-
-  // Current products are already paginated by backend
-  const currentProducts = products;
-
-  // Handle filter changes
-  const handleFilterChange = (filterType, value) => {
-    if (filterType === 'clear') {
-      setFilters({
-        price: null,
-        categories: [],
-        colors: [],
-        fabrics: [],
-      });
-      setSearchQuery('');
-      setCurrentPage(0); // Backend uses 0-indexed
-    } else {
-      setFilters((prev) => ({
-        ...prev,
-        [filterType]: value,
-      }));
-      setCurrentPage(0); // Reset to first page on filter change
-    }
-  };
-
-  // Handle search
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    setCurrentPage(0);
-  };
+  // Newest arrivals (same as featured for now, can be sorted by dateAdded if available)
+  const newestArrivals = featuredProducts.slice(0, 6);
+  
+  // Bestsellers (same as featured for now, can be filtered by isBestseller if available)
+  const bestsellers = featuredProducts.slice(0, 6);
 
   // Handle add to cart
   const handleAddToCart = async (productId) => {
@@ -151,9 +71,7 @@ export default function Home() {
         productId,
         quantity: 1,
       });
-      // Success feedback could be shown via toast notification
     } catch (error) {
-      
       // Error feedback could be shown via toast notification
     }
   };
@@ -163,217 +81,186 @@ export default function Home() {
     router.push(`/products/${productId}`);
   };
 
-  // Handle Quick Look
-  const handleQuickLook = (product) => {
-    setQuickLookProduct(product);
+  // Handle buy now
+  const handleBuyNow = async (productId) => {
+    if (!isAuthenticated) {
+      openLogin();
+      return;
+    }
+    
+    try {
+      await addToCartMutation.mutateAsync({
+        productId,
+        quantity: 1,
+      });
+      router.push('/cart');
+    } catch (error) {
+      // Error feedback could be shown via toast notification
+    }
   };
 
-  // Close Quick Look Modal
-  const closeQuickLook = () => {
-    setQuickLookProduct(null);
+  // Handle search (for header)
+  const handleSearch = (query) => {
+    router.push(`/catalog?search=${encodeURIComponent(query)}`);
   };
 
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen"
-      style={{
-        background: 'linear-gradient(135deg, #fef9f3 0%, #ffffff 50%, #fef9f3 100%)',
-        backgroundSize: '100% 100%',
-      }}
-    >
+    <div className="min-h-screen flex flex-col bg-neutral-50">
       {/* Header */}
       <Header 
-        onFilterToggle={() => setIsFilterOpen(!isFilterOpen)}
         onSearch={handleSearch}
-        searchQuery={searchQuery}
       />
 
       {/* Hero Section */}
-      <Hero />
+      <Hero featuredProducts={featuredProducts} />
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-12 lg:py-16">
-        <div className="flex flex-col lg:flex-row gap-12">
-          {/* Filter Sidebar */}
-          <FilterSidebar
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            isOpen={isFilterOpen}
-            onToggle={() => setIsFilterOpen(!isFilterOpen)}
-          />
+      {/* Featured Collection */}
+      {featuredCollection.length > 0 && (
+        <section className="container mx-auto px-4 py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-neutral-900 mb-4 text-3xl font-semibold">Featured Collection</h2>
+            <p className="text-neutral-600 max-w-2xl mx-auto">
+              Handpicked selection of our finest sarees, curated for their exceptional beauty and craftsmanship
+            </p>
+          </motion.div>
 
-          {/* Product Catalog */}
-          <div className="flex-1 min-w-0">
-            {/* Catalog Header - Minimal with animation */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.4 }}
-              className="mb-8 flex items-center justify-between"
-            >
-              <div>
-                <h2 className="text-2xl font-light text-gray-900 mb-1">
-                  Our Collection
-                </h2>
-                <motion.p
-                  key={totalProducts}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                  className="text-sm text-gray-500"
-                >
-                  {totalProducts} {totalProducts === 1 ? 'product' : 'products'}
-                </motion.p>
-              </div>
-
-              {/* Sort Options - Minimal */}
-              <motion.select
-                whileHover={{ scale: 1.05 }}
-                className="text-sm text-gray-600 border-0 bg-transparent cursor-pointer focus:outline-none hover:text-gray-900"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredCollection.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
               >
-                <option>Featured</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Newest</option>
-              </motion.select>
+                <EnterpriseProductCard
+                  product={product}
+                  onProductClick={handleProductClick}
+                  onAddToCart={handleAddToCart}
+                  onBuyNow={handleBuyNow}
+                />
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Newest Arrivals */}
+      {newestArrivals.length > 0 && (
+        <section className="bg-neutral-100 py-16">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-neutral-900 mb-4 text-3xl font-semibold">Newest Arrivals</h2>
+              <p className="text-neutral-600 max-w-2xl mx-auto">
+                Discover our latest additions - fresh designs and timeless classics
+              </p>
             </motion.div>
 
-            {/* Loading State */}
-            {productsLoading && (
-              <div className="text-center py-24">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-amber-900"></div>
-                <p className="mt-4 text-gray-500">Loading products...</p>
-              </div>
-            )}
-
-            {/* Error State */}
-            {productsError && !productsLoading && (
-              <div className="text-center py-24">
-                <p className="text-red-600 mb-4">Failed to load products</p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="text-sm text-amber-900 hover:text-amber-800 transition-colors"
-                >
-                  Try again
-                </button>
-              </div>
-            )}
-
-            {/* Product Grid - More Spacing with animations */}
-            {!productsLoading && !productsError && (
-              <AnimatePresence mode="wait">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {newestArrivals.map((product, index) => (
                 <motion.div
-                  key={`page-${currentPage}-${JSON.stringify(filters)}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  style={{ willChange: 'opacity' }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-16"
+                  key={product.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
                 >
-                  {currentProducts.map((product, index) => {
-                    // Check if product is in cart
-                    const isInCart = cart?.items?.some(
-                      (item) => item.productId === product.id
-                    ) || false;
-                    
-                    return (
-                      <ProductCard
-                        key={product.id}
+                  <EnterpriseProductCard
                         product={product}
-                        index={index}
-                        isInCart={isInCart}
+                    onProductClick={handleProductClick}
                         onAddToCart={handleAddToCart}
-                        onProductClick={handleProductClick}
-                        onQuickLook={handleQuickLook}
+                    onBuyNow={handleBuyNow}
                       />
-                    );
-                  })}
                 </motion.div>
-              </AnimatePresence>
+              ))}
+            </div>
+          </div>
+        </section>
             )}
 
-            {/* Pagination - Minimal */}
-            {totalPages > 1 && !productsLoading && (
-              <div className="flex justify-center items-center gap-1">
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-                  disabled={currentPage === 0}
-                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  ←
-                </button>
+      {/* Bestsellers */}
+      {bestsellers.length > 0 && (
+        <section className="container mx-auto px-4 py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-neutral-900 mb-4 text-3xl font-semibold">Bestsellers</h2>
+            <p className="text-neutral-600 max-w-2xl mx-auto">
+              Customer favorites - the most loved sarees from our collection
+            </p>
+          </motion.div>
 
-                {/* Page Numbers - Minimal (0-indexed to 1-indexed for display) */}
-                <div className="flex gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i).map((page) => {
-                    const displayPage = page + 1; // Display as 1-indexed
-                    // Show first page, last page, current page, and pages around current
-                    if (
-                      page === 0 ||
-                      page === totalPages - 1 ||
-                      (page >= currentPage - 1 && page <= currentPage + 1)
-                    ) {
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`px-3 py-2 text-sm transition-colors ${
-                            currentPage === page
-                              ? 'text-amber-900 font-medium'
-                              : 'text-gray-600 hover:text-gray-900'
-                          }`}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {bestsellers.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
                         >
-                          {displayPage}
-                        </button>
-                      );
-                    } else if (page === currentPage - 2 || page === currentPage + 2) {
-                      return <span key={page} className="px-2 text-gray-400">...</span>;
-                    }
-                    return null;
-                  })}
+                <EnterpriseProductCard
+                  product={product}
+                  onProductClick={handleProductClick}
+                  onAddToCart={handleAddToCart}
+                  onBuyNow={handleBuyNow}
+                />
+              </motion.div>
+            ))}
                 </div>
+        </section>
+      )}
 
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))}
-                  disabled={currentPage === totalPages - 1}
-                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  →
-                </button>
-              </div>
-            )}
-
-            {/* Empty State - Minimal */}
-            {!productsLoading && !productsError && currentProducts.length === 0 && (
-              <div className="text-center py-24">
-                <p className="text-gray-400 mb-4">No products found</p>
-                <button
-                  onClick={() => handleFilterChange('clear', null)}
-                  className="text-sm text-amber-900 hover:text-amber-800 transition-colors"
-                >
-                  Clear filters
-                </button>
-              </div>
-            )}
+      {/* Trust Section */}
+      <section className="bg-neutral-100 py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                title: 'Authentic Handloom',
+                description: 'Every saree is certified handwoven by master artisans',
+              },
+              {
+                title: 'Direct from Weavers',
+                description: 'Supporting local communities and traditional crafts',
+              },
+              {
+                title: 'Premium Quality',
+                description: 'Carefully curated for the finest materials and finish',
+              },
+            ].map((item, index) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="text-center p-6 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50"
+              >
+                <h3 className="text-neutral-900 mb-2 font-semibold text-lg">{item.title}</h3>
+                <p className="text-neutral-600 text-sm">{item.description}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
-      </main>
+      </section>
 
       {/* Footer */}
       <Footer />
-
-      {/* Quick Look Modal */}
-      <QuickLookModal
-        product={quickLookProduct}
-        isOpen={!!quickLookProduct}
-        onClose={closeQuickLook}
-        onAddToCart={handleAddToCart}
-      />
-    </motion.div>
+    </div>
   );
 }

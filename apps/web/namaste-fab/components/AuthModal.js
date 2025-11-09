@@ -2,11 +2,17 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginRequestSchema, RegisterRequestSchema } from '@ecom/shared-schemas';
 import { useAuthStore } from '@/stores/auth-store';
 import { useAuthModal } from '@/hooks/useAuthModal';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 /**
  * Unified Auth Modal Component
@@ -80,298 +86,139 @@ export function AuthModal() {
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-        onClick={handleClose}
-      >
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+        <DialogTitle className="sr-only">Authentication</DialogTitle>
+        <DialogDescription className="sr-only">
+          Login or register to access your account
+        </DialogDescription>
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto"
-          onClick={(e) => e.stopPropagation()}
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          transition={{ duration: 0.2 }}
         >
-          {/* Close Button */}
-          <button
-            onClick={handleClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="Close"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          {/* Tab Switcher */}
-          <div className="flex gap-2 mb-6 border-b border-gray-200">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-amber-600 to-orange-700 p-6 text-white relative">
             <button
-              onClick={switchToLogin}
-              className={`flex-1 py-3 text-sm font-medium transition-colors relative ${
-                activeTab === 'login'
-                  ? 'text-amber-900'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              onClick={handleClose}
+              className="absolute top-4 right-4 p-1 hover:bg-white/20 rounded-full transition-colors"
             >
-              Login
-              {activeTab === 'login' && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-900"
-                  transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                />
-              )}
+              <X className="w-5 h-5" />
             </button>
-            <button
-              onClick={switchToRegister}
-              className={`flex-1 py-3 text-sm font-medium transition-colors relative ${
-                activeTab === 'register'
-                  ? 'text-amber-900'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Sign Up
-              {activeTab === 'register' && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-900"
-                  transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                />
-              )}
-            </button>
+            <h2 className="text-2xl mb-1 font-semibold">Welcome to Namaste Fab</h2>
+            <p className="text-amber-100 text-sm">Experience India's finest handloom sarees</p>
           </div>
 
-          {/* Tab Content */}
-          <AnimatePresence mode="wait">
-            {activeTab === 'login' ? (
-              <motion.div
-                key="login"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.2 }}
-              >
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={(value) => {
+            if (value === 'login') {
+              switchToLogin();
+            } else {
+              switchToRegister();
+            }
+          }} className="p-6">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="login">Login</TabsTrigger>
+              <TabsTrigger value="register">Register</TabsTrigger>
+            </TabsList>
+
+            {/* Login Tab */}
+            <TabsContent value="login">
                 <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
-                  {/* Email or Phone */}
                   <div>
-                    <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">
-                      Email or Phone
-                    </label>
-                    <input
+                  <Label htmlFor="login-email">Email</Label>
+                  <Input
                       {...loginForm.register('email')}
-                      type="text"
                       id="login-email"
-                      placeholder="email@example.com or +919876543210"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-900/20 focus:border-amber-900 transition-all"
+                    type="email"
+                    placeholder="you@example.com"
+                    required
                     />
                     {loginForm.formState.errors.email && (
                       <p className="mt-1 text-sm text-red-600">{loginForm.formState.errors.email.message}</p>
                     )}
                   </div>
-
-                  {/* Phone (optional) */}
                   <div>
-                    <label htmlFor="login-phone" className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone (if not using email)
-                    </label>
-                    <input
-                      {...loginForm.register('phone')}
-                      type="tel"
-                      id="login-phone"
-                      placeholder="+919876543210"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-900/20 focus:border-amber-900 transition-all"
-                    />
-                    {loginForm.formState.errors.phone && (
-                      <p className="mt-1 text-sm text-red-600">{loginForm.formState.errors.phone.message}</p>
-                    )}
-                  </div>
-
-                  {/* Password */}
-                  <div>
-                    <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-1">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <input
+                  <Label htmlFor="login-password">Password</Label>
+                  <Input
                         {...loginForm.register('password')}
-                        type={showPassword ? 'text' : 'password'}
                         id="login-password"
-                        placeholder="Enter your password"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-900/20 focus:border-amber-900 transition-all"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2 top-2 text-gray-500 hover:text-gray-700 text-sm"
-                      >
-                        {showPassword ? 'Hide' : 'Show'}
-                      </button>
-                    </div>
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                  />
                     {loginForm.formState.errors.password && (
                       <p className="mt-1 text-sm text-red-600">{loginForm.formState.errors.password.message}</p>
                     )}
                   </div>
-
-                  {/* Error message */}
                   {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                       {error}
                     </div>
                   )}
-
-                  {/* Submit button */}
-                  <motion.button
-                    type="submit"
-                    disabled={isLoading}
-                    whileHover={{ scale: isLoading ? 1 : 1.02 }}
-                    whileTap={{ scale: isLoading ? 1 : 0.98 }}
-                    className="w-full bg-amber-900 text-white py-2.5 px-4 rounded-md hover:bg-amber-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
-                  >
+                <Button type="submit" disabled={isLoading} className="w-full bg-amber-700 hover:bg-amber-800">
                     {isLoading ? 'Logging in...' : 'Login'}
-                  </motion.button>
+                </Button>
                 </form>
+            </TabsContent>
 
-                {/* Switch to Register */}
-                <div className="mt-4 text-center">
-                  <p className="text-sm text-gray-600">
-                    Don&apos;t have an account?{' '}
-                    <button
-                      onClick={switchToRegister}
-                      className="text-amber-900 hover:text-amber-800 font-medium transition-colors"
-                    >
-                      Sign up here
-                    </button>
-                  </p>
+            {/* Register Tab */}
+            <TabsContent value="register">
+              <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
+                <div>
+                  <Label htmlFor="register-name">Full Name</Label>
+                  <Input
+                    {...registerForm.register('fullName')}
+                    id="register-name"
+                    type="text"
+                    placeholder="Your Name"
+                    required
+                  />
+                  {registerForm.formState.errors.fullName && (
+                    <p className="mt-1 text-sm text-red-600">{registerForm.formState.errors.fullName.message}</p>
+                  )}
                 </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="register"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-              >
-                <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
-                  {/* Email or Phone */}
                   <div>
-                    <label htmlFor="register-email" className="block text-sm font-medium text-gray-700 mb-1">
-                      Email or Phone
-                    </label>
-                    <input
+                  <Label htmlFor="register-email">Email</Label>
+                  <Input
                       {...registerForm.register('email')}
-                      type="text"
                       id="register-email"
-                      placeholder="email@example.com or +919876543210"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-900/20 focus:border-amber-900 transition-all"
+                    type="email"
+                    placeholder="you@example.com"
+                    required
                     />
                     {registerForm.formState.errors.email && (
                       <p className="mt-1 text-sm text-red-600">{registerForm.formState.errors.email.message}</p>
                     )}
                   </div>
-
-                  {/* Phone (optional) */}
                   <div>
-                    <label htmlFor="register-phone" className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone (if not using email)
-                    </label>
-                    <input
-                      {...registerForm.register('phone')}
-                      type="tel"
-                      id="register-phone"
-                      placeholder="+919876543210"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-900/20 focus:border-amber-900 transition-all"
-                    />
-                    {registerForm.formState.errors.phone && (
-                      <p className="mt-1 text-sm text-red-600">{registerForm.formState.errors.phone.message}</p>
-                    )}
-                  </div>
-
-                  {/* Password */}
-                  <div>
-                    <label htmlFor="register-password" className="block text-sm font-medium text-gray-700 mb-1">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <input
+                  <Label htmlFor="register-password">Password</Label>
+                  <Input
                         {...registerForm.register('password')}
-                        type={showPassword ? 'text' : 'password'}
                         id="register-password"
-                        placeholder="Enter your password"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-900/20 focus:border-amber-900 transition-all"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2 top-2 text-gray-500 hover:text-gray-700 text-sm"
-                      >
-                        {showPassword ? 'Hide' : 'Show'}
-                      </button>
-                    </div>
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                  />
                     {registerForm.formState.errors.password && (
                       <p className="mt-1 text-sm text-red-600">{registerForm.formState.errors.password.message}</p>
                     )}
                   </div>
-
-                  {/* Role */}
-                  <div>
-                    <label htmlFor="register-role" className="block text-sm font-medium text-gray-700 mb-1">
-                      Role
-                    </label>
-                    <select
-                      {...registerForm.register('role')}
-                      id="register-role"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-900/20 focus:border-amber-900 transition-all"
-                    >
-                      <option value="CUSTOMER">Customer</option>
-                      <option value="SELLER">Seller</option>
-                    </select>
-                    {registerForm.formState.errors.role && (
-                      <p className="mt-1 text-sm text-red-600">{registerForm.formState.errors.role.message}</p>
-                    )}
-                  </div>
-
-                  {/* Error message */}
                   {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                       {error}
                     </div>
                   )}
-
-                  {/* Submit button */}
-                  <motion.button
-                    type="submit"
-                    disabled={isLoading}
-                    whileHover={{ scale: isLoading ? 1 : 1.02 }}
-                    whileTap={{ scale: isLoading ? 1 : 0.98 }}
-                    className="w-full bg-amber-900 text-white py-2.5 px-4 rounded-md hover:bg-amber-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
-                  >
-                    {isLoading ? 'Registering...' : 'Sign Up'}
-                  </motion.button>
+                <Button type="submit" disabled={isLoading} className="w-full bg-amber-700 hover:bg-amber-800">
+                  {isLoading ? 'Registering...' : 'Create Account'}
+                </Button>
                 </form>
-
-                {/* Switch to Login */}
-                <div className="mt-4 text-center">
-                  <p className="text-sm text-gray-600">
-                    Already have an account?{' '}
-                    <button
-                      onClick={switchToLogin}
-                      className="text-amber-900 hover:text-amber-800 font-medium transition-colors"
-                    >
-                      Login here
-                    </button>
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            </TabsContent>
+          </Tabs>
         </motion.div>
-      </motion.div>
-    </AnimatePresence>
+      </DialogContent>
+    </Dialog>
   );
 }
 
