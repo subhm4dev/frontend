@@ -1294,5 +1294,71 @@ export const addressApi = {
   },
 };
 
+// Inventory API
+export const inventoryApi = {
+  // Locations
+  getLocations: async (params = {}) => {
+    const response = await apiClient.client.get('/api/v1/inventory/location', { params });
+    const data = extractData(response);
+    // Backend returns array of locations
+    return Array.isArray(data) ? data : [];
+  },
+  getLocation: async (locationId) => {
+    const response = await apiClient.client.get(`/api/v1/inventory/location/${locationId}`);
+    return extractData(response);
+  },
+  createLocation: async (data) => {
+    const response = await apiClient.client.post('/api/v1/inventory/location', data);
+    return extractData(response);
+  },
+  updateLocation: async (locationId, data) => {
+    const response = await apiClient.client.put(`/api/v1/inventory/location/${locationId}`, data);
+    return extractData(response);
+  },
+  deleteLocation: async (locationId) => {
+    await apiClient.client.delete(`/api/v1/inventory/location/${locationId}`);
+  },
+  // Stock/Inventory
+  getStock: async (params) => {
+    const response = await apiClient.client.get('/api/v1/inventory/stock', { params });
+    return extractData(response);
+  },
+  adjustStock: async (data) => {
+    const response = await apiClient.client.post('/api/v1/inventory/adjust', data);
+    return extractData(response);
+  },
+  getStockLocations: async (sku) => {
+    const response = await apiClient.client.get(`/api/v1/inventory/stock/${sku}/locations`);
+    return extractData(response);
+  },
+  reserveInventory: async (data) => {
+    const response = await apiClient.client.post('/api/v1/inventory/reserve', data);
+    return extractData(response);
+  },
+  releaseInventory: async (data) => {
+    const response = await apiClient.client.post('/api/v1/inventory/release', data);
+    return extractData(response);
+  },
+};
+
+// Users API (for fetching sellers)
+// Note: This assumes there's an endpoint to fetch users by role
+// If not available, we'll need to use a generic API call
+export const userApi = {
+  getUsersByRole: async (role) => {
+    try {
+      // Try to use a users endpoint if available
+      const response = await apiClient.client.get('/api/v1/user', { 
+        params: { role } 
+      });
+      return extractData(response);
+    } catch (error) {
+      // If endpoint doesn't exist, return empty array
+      console.warn('Users by role endpoint not available:', error);
+      return [];
+    }
+  },
+};
+
 // Export the class for custom instances
 export { ApiClient };

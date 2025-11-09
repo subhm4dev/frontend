@@ -11,12 +11,13 @@ import { catalogApi } from '@ecom/api-client';
  * - Product detail
  * - Product mutations (create, update, delete) for admin
  */
-export function useProducts(params = {}) {
+export function useProducts(params = {}, options = {}) {
   return useQuery({
     queryKey: ['products', params],
     queryFn: () => catalogApi.getProducts(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+    ...options, // Allow overriding default options (e.g., enabled)
   });
 }
 

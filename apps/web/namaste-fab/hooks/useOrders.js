@@ -12,12 +12,13 @@ import { orderApi } from '@ecom/api-client';
  * - Update order status (admin)
  * - Cancel order
  */
-export function useOrders(params = {}) {
+export function useOrders(params = {}, options = {}) {
   return useQuery({
     queryKey: ['orders', params],
     queryFn: () => orderApi.getOrders(params),
     staleTime: 2 * 60 * 1000, // 2 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes
+    ...options, // Allow overriding default options (e.g., enabled)
   });
 }
 
