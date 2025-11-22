@@ -78,7 +78,17 @@ export const useAuthStore = create(
       login: async (data) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await authApi.login(data);
+          // Add domainCode from environment variable if not provided
+          const loginData = {
+            ...data,
+            domainCode: data.domainCode || 
+              (typeof window !== 'undefined' 
+                ? window.process?.env?.NEXT_PUBLIC_DOMAIN_CODE || process.env.NEXT_PUBLIC_DOMAIN_CODE
+                : process.env.NEXT_PUBLIC_DOMAIN_CODE) ||
+              'ecommerce',
+          };
+          
+          const response = await authApi.login(loginData);
           
           // Backend sets cookies automatically (tokens in cookies)
           // Store user info in Zustand (will be persisted to localStorage)
@@ -114,7 +124,24 @@ export const useAuthStore = create(
       register: async (data) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await authApi.register(data);
+          const registrationData = {
+            ...data,
+            domainCode: data.domainCode || 'ecommerce',
+            tenantId: data.tenantId || (typeof window !== 'undefined' 
+              ? window.process?.env?.NEXT_PUBLIC_APP_TENANT_ID || process.env.NEXT_PUBLIC_APP_TENANT_ID
+              : process.env.NEXT_PUBLIC_APP_TENANT_ID),
+          };
+          
+          if (!registrationData.tenantId) {
+            const errorMessage = 'Registration is currently unavailable. The system configuration is missing required settings. Please contact support for assistance.';
+            set({
+              isLoading: false,
+              error: errorMessage,
+            });
+            throw new Error(errorMessage);
+          }
+          
+          const response = await authApi.register(registrationData);
           
           // Backend sets cookies automatically (tokens in cookies)
           // Store user info in Zustand (will be persisted to localStorage)
